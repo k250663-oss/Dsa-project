@@ -107,6 +107,7 @@ void sort_by_likes() {
                 swap(current->content, current->next->content);
                 swap(current->author, current->next->author);
                 swap(current->likes, current->next->likes);
+                
 
                 swapped = true;
             }
