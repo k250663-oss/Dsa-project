@@ -1,10 +1,24 @@
- #include <iostream>
+#include <iostream>
 #include <string>
 #include <fstream>
 #include <iomanip>
 using namespace std;
+
+// ==================== UI COLOR & STYLE CONSTANTS ====================
+const string RESET   = "\033[0m";
+const string BOLD    = "\033[1m";
+const string DIM     = "\033[2m";
+const string CYAN    = "\033[36m";
+const string BLUE    = "\033[34m";
+const string GREEN   = "\033[32m";
+const string YELLOW  = "\033[33m";
+const string RED     = "\033[31m";
+const string MAGENTA = "\033[35m";
+// ===================================================================
+
 // forward declaration so user can point to notification nodes*
 class notification;
+
 // a registered user, stored as a node in a doubly linked list*
 class user
 {
@@ -32,6 +46,7 @@ public:
         queuerear = NULL;
     }
 };
+
 // notification queue node:
 class notification
 {
@@ -39,6 +54,7 @@ public:
     string message;
     notification *next;
 };
+
 // a single comment, stored in a singly linked list under each post*
 class CommentNode
 {
@@ -54,6 +70,7 @@ public:
         next = NULL;
     }
 };
+
 // a single post, stored as a node in the post linked list*
 class PostNode
 {
@@ -77,6 +94,7 @@ public:
         comments = NULL;
     }
 };
+
 // linked list that stores all posts in the order they were created*
 class PostLinkedList
 {
@@ -94,8 +112,7 @@ public:
     // create a new post and add it at the rear*
     void create_post(string content, string author)
     {
-        PostNode *new_post =
-            new PostNode(nextID, content, author);
+        PostNode *new_post = new PostNode(nextID, content, author);
         nextID++;
         // If list is empty*
         if (head == NULL)
@@ -108,7 +125,7 @@ public:
             tail->next = new_post;
             tail = new_post;
         }
-        cout << "post created successfully" << endl;
+        cout << GREEN << "  [✓] Post created successfully!" << RESET << endl;
     }
     // bubble sort, the most liked posts move to the front*
     void sort_by_likes()
@@ -136,14 +153,14 @@ public:
                 current = current->next;
             }
         } while (swapped);
-        cout << "Posts sorted by likes!";
+        cout << GREEN << "  [✓] Posts sorted by likes!" << RESET << endl;
     }
     // delete a post from the list, only its author is allowed to*
-bool delete_post(int id, string username)
+    bool delete_post(int id, string username)
     {
         if (head == NULL)
         {
-            cout << "No posts available";
+            cout << YELLOW << "  [!] No posts available." << RESET << endl;
             return false;
         }
         PostNode *current = head;
@@ -157,13 +174,13 @@ bool delete_post(int id, string username)
         // Post not found*
         if (current == NULL)
         {
-            cout << "Post not found";
+            cout << RED << "  [!] Post not found." << RESET << endl;
             return false;
         }
         // Check ownership*
         if (current->author != username)
         {
-            cout << "You can only delete your own posts";
+            cout << RED << "  [!] You can only delete your own posts." << RESET << endl;
             return false;
         }
         // when deleting first post*
@@ -193,7 +210,7 @@ bool delete_post(int id, string username)
             delete temp;
         }
         delete current;
-        cout << "Post has been deleted , by: " << username << endl;
+        cout << GREEN << "  [✓] Post has been deleted by @" << username << RESET << endl;
         return true;
     }
     // display every post in the list*
@@ -202,17 +219,19 @@ bool delete_post(int id, string username)
         PostNode *temp = head;
         if (temp == NULL)
         {
-            cout << "No posts available" << endl;
+            cout << YELLOW << "  [!] No posts available." << RESET << endl;
             return;
         }
         while (temp != NULL)
         {
-            cout << "\npost ID: " << temp->postID;
-            cout << "\nauthor: " << temp->author;
-            cout << "\ncontent: " << temp->content;
-            cout << "\nlikes: " << temp->likes;
-            cout << endl
-                 << endl;
+            cout << DIM << "\n  ┌────────────────────────────────────────────┐" << RESET << endl;
+            cout << "  " << DIM << "│" << RESET << BOLD << CYAN << " #" << temp->postID << RESET
+                 << DIM << "  by " << RESET << BOLD << "@" << temp->author << RESET << endl;
+            cout << "  " << DIM << "├────────────────────────────────────────────┤" << RESET << endl;
+            cout << "  " << DIM << "│ " << RESET << temp->content << endl;
+            cout << "  " << DIM << "├────────────────────────────────────────────┤" << RESET << endl;
+            cout << "  " << DIM << "│ " << RESET << RED << "♥ " << temp->likes << " Likes" << RESET << endl;
+            cout << DIM << "  └────────────────────────────────────────────┘" << RESET << endl;
             temp = temp->next;
         }
     }
@@ -226,7 +245,7 @@ bool delete_post(int id, string username)
         }
         if (post == NULL)
         {
-            cout << "Post not found" << endl;
+            cout << RED << "  [!] Post not found." << RESET << endl;
             return;
         }
         CommentNode *newComment = new CommentNode(username, text);
@@ -245,7 +264,7 @@ bool delete_post(int id, string username)
             }
             temp->next = newComment;
         }
-        cout << "Comment added successfully" << endl;
+        cout << GREEN << "  [✓] Comment added successfully!" << RESET << endl;
     }
     // display all the comments of a post*
     void display_comments(int id)
@@ -257,23 +276,24 @@ bool delete_post(int id, string username)
         }
         if (post == NULL)
         {
-            cout << "Post not found" << endl;
+            cout << RED << "  [!] Post not found." << RESET << endl;
             return;
         }
         if (post->comments == NULL)
         {
-            cout << "No comments on this post" << endl;
+            cout << YELLOW << "  [!] No comments on this post yet." << RESET << endl;
             return;
         }
         CommentNode *temp = post->comments;
-        cout << "\nComments on post " << id << ":" << endl;
+        cout << BOLD << CYAN << "\n  ── Comments on Post #" << id << " ──" << RESET << endl;
         while (temp != NULL)
         {
-            cout << temp->username << ": " << temp->text << endl;
+            cout << "   " << DIM << "↳ " << RESET << BOLD << "@" << temp->username << ": " << RESET << temp->text << endl;
             temp = temp->next;
         }
     }
 };
+
 // adjacency list node representing one friend inside another user's friend list
 class FriendNode
 {
@@ -286,13 +306,14 @@ public:
         next = NULL;
     }
 };
+
 // the user in the graph
 class GraphVertex
 {
 public:
     string username;
     FriendNode *friends; // points to the users' friends list
-    GraphVertex *next; // points to the next user in the graph (the next vertex)
+    GraphVertex *next;   // points to the next user in the graph (the next vertex)
     bool visited;
     GraphVertex(string name)
     {
@@ -302,6 +323,7 @@ public:
         visited = false;
     }
 };
+
 // node used by the BFS queue, holds a pointer to a graph vertex*
 class TraversalNode
 {
@@ -314,6 +336,7 @@ public:
         next = NULL;
     }
 };
+
 // simple linked list queue (fifo) used by the BFS traversal*
 class GraphQueue
 {
@@ -372,6 +395,7 @@ public:
         }
     }
 };
+
 // friendNode and graphVertex classes combined to form the graph
 class AdjacencyListGraph
 {
@@ -386,7 +410,7 @@ public:
     {
         if (find_vertex(username) != NULL)
         {
-            cout << "User already exists in graph" << endl;
+            cout << YELLOW << "  [!] User already exists in graph." << RESET << endl;
             return;
         }
         GraphVertex *new_vertex = new GraphVertex(username);
@@ -403,7 +427,7 @@ public:
             }
             temp->next = new_vertex;
         }
-        cout << username << " added to graph" << endl;
+        cout << DIM << "  [+] " << username << " registered in network graph." << RESET << endl;
     }
     // search for a particular user in the graph*
     GraphVertex *find_vertex(string username)
@@ -426,17 +450,17 @@ public:
         GraphVertex *second = find_vertex(user2);
         if (first == NULL || second == NULL)
         {
-            cout << "User does not exist" << endl;
+            cout << RED << "  [!] User does not exist." << RESET << endl;
             return;
         }
         if (user1 == user2)
         {
-            cout << "Cannot add yourself as a friend" << endl;
+            cout << RED << "  [!] Cannot add yourself as a friend." << RESET << endl;
             return;
         }
         if (is_friend(user1, user2))
         {
-            cout << "Already friends" << endl;
+            cout << YELLOW << "  [!] Already friends." << RESET << endl;
             return;
         }
         FriendNode *new_friend1 = new FriendNode(user2);
@@ -446,7 +470,7 @@ public:
         FriendNode *new_friend2 = new FriendNode(user1);
         new_friend2->next = second->friends;
         second->friends = new_friend2;
-        cout << user1 << " and " << user2 << " are now friends" << endl;
+        cout << GREEN << "  [✓] @" << user1 << " and @" << user2 << " are now friends!" << RESET << endl;
     }
     // check if two users already friends*
     bool is_friend(string user1, string user2)
@@ -474,19 +498,19 @@ public:
         GraphVertex *user = find_vertex(username);
         if (user == NULL)
         {
-            cout << "User not found" << endl;
+            cout << RED << "  [!] User not found." << RESET << endl;
             return;
         }
         FriendNode *temp = user->friends;
         if (temp == NULL)
         {
-            cout << username << " has no friends yet" << endl;
+            cout << YELLOW << "  [!] @" << username << " has no friends yet." << RESET << endl;
             return;
         }
-        cout << "\nFriends of " << username << ":" << endl;
+        cout << BOLD << CYAN << "\n  ── Friends of @" << username << " ──" << RESET << endl;
         while (temp != NULL)
         {
-            cout << temp->username << endl;
+            cout << "   " << GREEN << "• " << RESET << "@" << temp->username << endl;
             temp = temp->next;
         }
     }
@@ -497,12 +521,12 @@ public:
         GraphVertex *second = find_vertex(user2);
         if (first == NULL || second == NULL)
         {
-            cout << "User does not exist" << endl;
+            cout << RED << "  [!] User does not exist." << RESET << endl;
             return;
         }
         if (!is_friend(user1, user2))
         {
-            cout << "These users are not friends" << endl;
+            cout << YELLOW << "  [!] These users are not friends." << RESET << endl;
             return;
         }
         // remove user2 from user1's friend list*
@@ -545,7 +569,7 @@ public:
             }
             delete current;
         }
-        cout << "Friendship removed successfully" << endl;
+        cout << GREEN << "  [✓] Friendship removed successfully." << RESET << endl;
     }
     // Breadth First Search traversal of the graph*
     void BFS(string start)
@@ -553,7 +577,7 @@ public:
         GraphVertex *startVertex = find_vertex(start);
         if (startVertex == NULL)
         {
-            cout << "User not found.\n";
+            cout << RED << "  [!] User not found." << RESET << endl;
             return;
         }
         // Reset visited status for all users*
@@ -566,11 +590,11 @@ public:
         GraphQueue q;
         startVertex->visited = true;
         q.enqueue(startVertex);
-        cout << "\nBFS Traversal starting from " << start << ":\n";
+        cout << BOLD << CYAN << "\n  ── Network BFS starting from @" << start << " ──\n  " << RESET;
         while (!q.is_empty())
         {
             GraphVertex *current = q.dequeue();
-            cout << current->username << " ";
+            cout << "@" << current->username << " ";
             FriendNode *friendTemp = current->friends;
             while (friendTemp != NULL)
             {
@@ -591,12 +615,12 @@ public:
         GraphVertex *user = find_vertex(username);
         if (user == NULL)
         {
-            cout << "User not found.\n";
+            cout << RED << "  [!] User not found." << RESET << endl;
             return;
         }
         GraphVertex *candidate = head;
         bool found = false;
-        cout << "\nFriend recommendations for " << username << ":\n";
+        cout << BOLD << CYAN << "\n  ── Friend Recommendations for @" << username << " ──" << RESET << endl;
         while (candidate != NULL)
         {
             // Skip the user and existing friends*
@@ -616,8 +640,8 @@ public:
                 }
                 if (mutualCount > 0)
                 {
-                    cout << candidate->username << " - " << mutualCount
-                         << " mutual friend(s)\n";
+                    cout << "   " << GREEN << "• " << RESET << BOLD << "@" << candidate->username << RESET
+                         << DIM << " (" << mutualCount << " mutual friend" << (mutualCount > 1 ? "s" : "") << ")" << RESET << endl;
                     found = true;
                 }
             }
@@ -625,7 +649,7 @@ public:
         }
         if (!found)
         {
-            cout << "No recommendations available.\n";
+            cout << YELLOW << "  [!] No recommendations available." << RESET << endl;
         }
     }
     // write all friendships to file*
@@ -649,7 +673,7 @@ public:
             current = current->next;
         }
         file.close();
-        cout << "Friendships saved successfully" << endl;
+        cout << DIM << "  [✓] Friendships saved." << RESET << endl;
     }
     // read friendships from file and rebuild the graph*
     void load_friendships()
@@ -682,6 +706,7 @@ public:
         }
     }
 };
+
 // request node for pending friend requests
 class RequestNode
 {
@@ -696,6 +721,7 @@ public:
         next = NULL;
     }
 };
+
 // request list to store pending friend requests
 class RequestList
 {
@@ -749,48 +775,48 @@ public:
     {
         if (graph.find_vertex(sender) == NULL || graph.find_vertex(receiver) == NULL)
         {
-            cout << "One or both users do not exist.\n";
+            cout << RED << "  [!] One or both users do not exist." << RESET << endl;
             return;
         }
         if (sender == receiver)
         {
-            cout << "You cannot send a request to yourself.\n";
+            cout << RED << "  [!] You cannot send a request to yourself." << RESET << endl;
             return;
         }
         if (graph.is_friend(sender, receiver))
         {
-            cout << "These users are already friends.\n";
+            cout << YELLOW << "  [!] These users are already friends." << RESET << endl;
             return;
         }
         if (find_request(sender, receiver) != NULL ||
             find_request(receiver, sender) != NULL)
         {
-            cout << "A request between these users already exists.\n";
+            cout << YELLOW << "  [!] A request between these users already exists." << RESET << endl;
             return;
         }
         RequestNode *newRequest = new RequestNode(sender, receiver);
         newRequest->next = head;
         head = newRequest;
-        cout << "Friend request sent successfully.\n";
+        cout << GREEN << "  [✓] Friend request sent to @" << receiver << "!" << RESET << endl;
     }
     // 2. Display incoming requests*
     void display_incoming(string username)
     {
         RequestNode *temp = head;
         bool found = false;
-        cout << "\nIncoming requests for " << username << ":\n";
+        cout << BOLD << CYAN << "\n  ── Incoming Friend Requests for @" << username << " ──" << RESET << endl;
         while (temp != NULL)
         {
             if (temp->receiver == username)
             {
-                cout << "From: " << temp->sender << endl;
+                cout << "   " << YELLOW << "• " << RESET << "From: " << BOLD << "@" << temp->sender << RESET << endl;
                 found = true;
             }
             temp = temp->next;
         }
         if (!found)
         {
-            cout << "No incoming requests.\n";
+            cout << YELLOW << "  [!] No incoming requests." << RESET << endl;
         }
     }
     // 3. Accept a friend request*
@@ -799,17 +825,17 @@ public:
         RequestNode *request = find_request(sender, receiver);
         if (request == NULL)
         {
-            cout << "Friend request not found.\n";
+            cout << RED << "  [!] Friend request not found." << RESET << endl;
             return;
         }
         if (graph.find_vertex(sender) == NULL || graph.find_vertex(receiver) == NULL)
         {
-            cout << "One or both users do not exist in the graph.\n";
+            cout << RED << "  [!] One or both users do not exist in the graph." << RESET << endl;
             return;
         }
         if (graph.is_friend(sender, receiver))
         {
-            cout << "These users are already friends.\n";
+            cout << YELLOW << "  [!] These users are already friends." << RESET << endl;
             remove_request(sender, receiver);
             return;
         }
@@ -817,45 +843,49 @@ public:
         graph.add_friend(sender, receiver);
         // Remove the accepted request*
         remove_request(sender, receiver);
-        cout << "Friend request accepted. You are now friends!\n";
+        cout << GREEN << "  [✓] Friend request accepted. You are now friends!" << RESET << endl;
     }
     // 4. Reject a friend request*
     void reject_request(string receiver, string sender)
     {
         if (find_request(sender, receiver) == NULL)
         {
-            cout << "Friend request not found.\n";
+            cout << RED << "  [!] Friend request not found." << RESET << endl;
             return;
         }
         remove_request(sender, receiver);
-        cout << "Friend request rejected.\n";
+        cout << YELLOW << "  [✓] Friend request rejected." << RESET << endl;
     }
     // write all pending requests to file*
-    void save_requests() {
-    ofstream file("requests.txt");
-    RequestNode* temp = head;
-    while (temp != NULL) {
-        file << quoted(temp->sender) << " "
-             << quoted(temp->receiver) << endl;
-        temp = temp->next;
-    }
-    file.close();
-    cout << "Friend requests saved successfully" << endl;
-}
-    // read pending requests from file*
-void load_requests() {
-    ifstream file("requests.txt");
-    string sender, receiver;
-    while (file >> quoted(sender) >> quoted(receiver)) {
-        if (find_request(sender, receiver) == NULL) {
-            RequestNode* newRequest =
-                new RequestNode(sender, receiver);
-            newRequest->next = head;
-            head = newRequest;
+    void save_requests()
+    {
+        ofstream file("requests.txt");
+        RequestNode *temp = head;
+        while (temp != NULL)
+        {
+            file << quoted(temp->sender) << " "
+                 << quoted(temp->receiver) << endl;
+            temp = temp->next;
         }
+        file.close();
+        cout << DIM << "  [✓] Friend requests saved." << RESET << endl;
     }
-    file.close();
-}
+    // read pending requests from file*
+    void load_requests()
+    {
+        ifstream file("requests.txt");
+        string sender, receiver;
+        while (file >> quoted(sender) >> quoted(receiver))
+        {
+            if (find_request(sender, receiver) == NULL)
+            {
+                RequestNode *newRequest = new RequestNode(sender, receiver);
+                newRequest->next = head;
+                head = newRequest;
+            }
+        }
+        file.close();
+    }
     // Free all remaining pending requests*
     ~RequestList()
     {
@@ -867,6 +897,7 @@ void load_requests() {
         }
     }
 };
+
 // one like, stores which user liked which post*
 class LikeNode
 {
@@ -881,6 +912,7 @@ public:
         next = NULL;
     }
 };
+
 // linked list of all likes, used to stop duplicate likes*
 class LikesRegistry
 {
@@ -897,8 +929,7 @@ public:
         LikeNode *temp = head;
         while (temp != NULL)
         {
-            if (temp->postID == id &&
-                temp->username == username)
+            if (temp->postID == id && temp->username == username)
             {
                 return true;
             }
@@ -911,7 +942,7 @@ public:
     {
         if (has_liked(id, username))
         {
-            cout << "You have already liked this post" << endl;
+            cout << YELLOW << "  [!] You have already liked this post." << RESET << endl;
             return;
         }
         LikeNode *newLike = new LikeNode(id, username);
@@ -951,19 +982,19 @@ public:
     {
         LikeNode *temp = head;
         bool found = false;
-        cout << "\nUsers who liked post " << id << ":" << endl;
+        cout << BOLD << CYAN << "\n  ── Users who liked Post #" << id << " ──" << RESET << endl;
         while (temp != NULL)
         {
             if (temp->postID == id)
             {
-                cout << "- " << temp->username << endl;
+                cout << "   " << RED << "♥ " << RESET << "@" << temp->username << endl;
                 found = true;
             }
             temp = temp->next;
         }
         if (!found)
         {
-            cout << "No likes yet." << endl;
+            cout << YELLOW << "  [!] No likes yet." << RESET << endl;
         }
     }
     // write all likes to file*
@@ -1005,6 +1036,7 @@ public:
         }
     }
 };
+
 // main class, ties together the users, posts, friendships, requests and likes*
 class social_network
 {
@@ -1030,7 +1062,7 @@ public:
     {
         if (active_user == NULL)
         {
-            cout << "Please login first";
+            cout << RED << "  [!] Please login first." << RESET << endl;
             return;
         }
         posts.create_post(content, active_user->name);
@@ -1050,22 +1082,22 @@ public:
     {
         if (active_user != NULL)
         {
-            cout << "Someone is already logged in" << endl;
+            cout << YELLOW << "  [!] Someone is already logged in." << RESET << endl;
             return false;
         }
         user *found = search(n);
         if (found == NULL)
         {
-            cout << "User does not exist" << endl;
+            cout << RED << "  [!] User does not exist." << RESET << endl;
             return false;
         }
         if (found->password != p)
         {
-            cout << "Incorrect password" << endl;
+            cout << RED << "  [!] Incorrect password." << RESET << endl;
             return false;
         }
         active_user = found;
-        cout << "Login successful" << endl;
+        cout << GREEN << "  [✓] Login successful! Welcome back, @" << n << "." << RESET << endl;
         return true;
     }
     // log out the active user*
@@ -1073,11 +1105,11 @@ public:
     {
         if (active_user == NULL)
         {
-            cout << "No user is logged in" << endl;
+            cout << YELLOW << "  [!] No user is logged in." << RESET << endl;
             return;
         }
         active_user = NULL;
-        cout << "Logged out" << endl;
+        cout << GREEN << "  [✓] Logged out successfully." << RESET << endl;
     }
     // search for a user by name in the users list*
     user *search(string target_name)
@@ -1099,7 +1131,7 @@ public:
         // prevent duplication*
         if (search(n) != NULL)
         {
-            cout << "user already exists" << endl;
+            cout << RED << "  [!] User already exists." << RESET << endl;
             return false;
         }
         user *new_user = new user(n, p, e);
@@ -1144,11 +1176,11 @@ public:
     {
         if (active_user == NULL || active_user->queuefront == NULL)
         {
-            cout << "no unread alerts";
+            cout << YELLOW << "  [!] No unread alerts." << RESET << endl;
             return;
         }
         notification *temp = active_user->queuefront;
-        cout << "new alert: " << temp->message << endl;
+        cout << CYAN << "  [🔔] New alert: " << RESET << temp->message << endl;
         active_user->queuefront = active_user->queuefront->next;
         if (active_user->queuefront == NULL)
         {
@@ -1159,15 +1191,16 @@ public:
     // display all unread alerts from front to rear*
     void check_inbox(user *active_user)
     {
+        cout << BOLD << CYAN << "\n  ── Notification Inbox ──" << RESET << endl;
         if (active_user == NULL || active_user->queuefront == NULL)
         {
-            cout << "No unread alerts" << endl;
+            cout << YELLOW << "  [!] No unread alerts." << RESET << endl;
             return;
         }
         notification *temp = active_user->queuefront;
         while (temp != NULL)
         {
-            cout << temp->message << endl;
+            cout << "   " << MAGENTA << "• " << RESET << temp->message << endl;
             temp = temp->next;
         }
     }
@@ -1176,7 +1209,7 @@ public:
     {
         if (active_user == NULL)
         {
-            cout << "Please login first";
+            cout << RED << "  [!] Please login first." << RESET << endl;
             return;
         }
         if (posts.delete_post(id, active_user->name))
@@ -1189,7 +1222,7 @@ public:
     {
         if (active_user == NULL)
         {
-            cout << "Please login first" << endl;
+            cout << RED << "  [!] Please login first." << RESET << endl;
             return;
         }
         PostNode *temp = posts.head;
@@ -1199,16 +1232,16 @@ public:
         }
         if (temp == NULL)
         {
-            cout << "Post not found" << endl;
+            cout << RED << "  [!] Post not found." << RESET << endl;
             return;
         }
         if (temp->author != active_user->name)
         {
-            cout << "You can only edit your own posts" << endl;
+            cout << RED << "  [!] You can only edit your own posts." << RESET << endl;
             return;
         }
         temp->content = newContent;
-        cout << "Post updated successfully!" << endl;
+        cout << GREEN << "  [✓] Post updated successfully!" << RESET << endl;
     }
     // show the users who liked a post*
     void view_likes(int id)
@@ -1220,7 +1253,7 @@ public:
     {
         if (active_user == NULL)
         {
-            cout << "Please login first";
+            cout << RED << "  [!] Please login first." << RESET << endl;
             return;
         }
         PostNode *temp = posts.head;
@@ -1230,17 +1263,17 @@ public:
         }
         if (temp == NULL)
         {
-            cout << "Post not found";
+            cout << RED << "  [!] Post not found." << RESET << endl;
             return;
         }
         if (temp->author == active_user->name)
         {
-            cout << "You cannot like your own post";
+            cout << RED << "  [!] You cannot like your own post." << RESET << endl;
             return;
         }
         if (likesRegistry.has_liked(id, active_user->name))
         {
-            cout << "You have already liked this post";
+            cout << YELLOW << "  [!] You have already liked this post." << RESET << endl;
             return;
         }
         // record the like, increase the count and send an alert to the author*
@@ -1249,31 +1282,30 @@ public:
         user *author = search(temp->author);
         if (author != NULL)
         {
-            string msg = active_user->name +
-                         " liked your post: " + temp->content;
+            string msg = "@" + active_user->name + " liked your post: \"" + temp->content + "\"";
             enq_notification(author, msg);
         }
-        cout << "Post liked successfully";
+        cout << GREEN << "  [✓] Post liked!" << RESET << endl;
     }
     // show all posts and ask which one to like*
     void choose_post_to_like()
     {
         if (active_user == NULL)
         {
-            cout << "Please login first" << endl;
+            cout << RED << "  [!] Please login first." << RESET << endl;
             return;
         }
         if (posts.head == NULL)
         {
-            cout << "No posts available" << endl;
+            cout << YELLOW << "  [!] No posts available." << RESET << endl;
             return;
         }
         // Display all posts*
-        cout << "\n===== AVAILABLE POSTS =====\n";
+        cout << BOLD << CYAN << "\n  ── Available Posts ──\n" << RESET;
         posts.display_posts();
         // Ask user to choose*
         int id;
-        cout << "\nEnter Post ID you want to like: ";
+        cout << CYAN << "\n  ▸ Enter Post ID you want to like: " << RESET;
         cin >> id;
         // Like selected post*
         like_post(id);
@@ -1287,7 +1319,7 @@ public:
         ofstream notifFile("notifications.txt");
         if (!userFile || !postFile || !notifFile)
         {
-            cout << "Error opening files";
+            cout << RED << "  [!] Error opening files for saving." << RESET << endl;
             return;
         }
         // Save users*
@@ -1317,7 +1349,7 @@ public:
                      << p->likes << endl;
             p = p->next;
         }
-        cout << "Data saved successfully!";
+        cout << DIM << "\n  [✓] Core data saved." << RESET << endl;
         graph.save_friendships();
         requests.save_requests();
         likesRegistry.save_likes();
@@ -1384,14 +1416,14 @@ public:
         requests.load_requests();
         likesRegistry.load_likes();
         load_comments();
-        cout << "Data loaded successfully!";
+        cout << DIM << "  [✓] System data loaded." << RESET << endl;
     }
     // send a friend request from the active user*
     void send_friend_request(string receiver)
     {
         if (active_user == NULL)
         {
-            cout << "Please login first" << endl;
+            cout << RED << "  [!] Please login first." << RESET << endl;
             return;
         }
         requests.send_request(active_user->name, receiver, graph);
@@ -1401,7 +1433,7 @@ public:
     {
         if (active_user == NULL)
         {
-            cout << "Please login first" << endl;
+            cout << RED << "  [!] Please login first." << RESET << endl;
             return;
         }
         requests.display_incoming(active_user->name);
@@ -1411,7 +1443,7 @@ public:
     {
         if (active_user == NULL)
         {
-            cout << "Please login first" << endl;
+            cout << RED << "  [!] Please login first." << RESET << endl;
             return;
         }
         requests.accept_request(active_user->name, sender, graph);
@@ -1421,7 +1453,7 @@ public:
     {
         if (active_user == NULL)
         {
-            cout << "Please login first" << endl;
+            cout << RED << "  [!] Please login first." << RESET << endl;
             return;
         }
         requests.reject_request(active_user->name, sender);
@@ -1431,7 +1463,7 @@ public:
     {
         if (active_user == NULL)
         {
-            cout << "Please login first" << endl;
+            cout << RED << "  [!] Please login first." << RESET << endl;
             return;
         }
         posts.add_comment(id, active_user->name, text);
@@ -1442,34 +1474,38 @@ public:
         posts.display_comments(id);
     }
     // write all comments to file*
-    void save_comments() {
-    ofstream file("comments.txt");
-    PostNode* post = posts.head;
-    while (post != NULL) {
-        CommentNode* comment = post->comments;
-        while (comment != NULL) {
-            file << post->postID << " "
-                 << quoted(comment->username) << " "
-                 << quoted(comment->text) << endl;
-            comment = comment->next;
+    void save_comments()
+    {
+        ofstream file("comments.txt");
+        PostNode *post = posts.head;
+        while (post != NULL)
+        {
+            CommentNode *comment = post->comments;
+            while (comment != NULL)
+            {
+                file << post->postID << " "
+                     << quoted(comment->username) << " "
+                     << quoted(comment->text) << endl;
+                comment = comment->next;
+            }
+            post = post->next;
         }
-        post = post->next;
+        file.close();
     }
-    file.close();
-}
     // read comments from file and attach them to their posts*
-void load_comments() {
-    ifstream file("comments.txt");
-    int id;
-    string username, text;
-    while (file >> id
-                >> quoted(username)
-                >> quoted(text)) {
-        posts.add_comment(id, username, text);
+    void load_comments()
+    {
+        ifstream file("comments.txt");
+        int id;
+        string username, text;
+        while (file >> id >> quoted(username) >> quoted(text))
+        {
+            posts.add_comment(id, username, text);
+        }
+        file.close();
     }
-    file.close();
-}
 };
+
 // keep asking until the user enters a valid number*
 int read_choice()
 {
@@ -1477,7 +1513,7 @@ int read_choice()
 
     while (!(cin >> choice))
     {
-        cout << "Please enter a number: ";
+        cout << RED << "  [!] Please enter a valid number: " << RESET;
         cin.clear();
         cin.ignore(10000, '\n');
     }
@@ -1490,7 +1526,7 @@ int read_choice()
 string read_text(string prompt)
 {
     string value;
-    cout << prompt;
+    cout << CYAN << "  ▸ " << RESET << prompt;
     getline(cin, value);
     return value;
 }
@@ -1503,12 +1539,14 @@ void show_post(PostNode *post)
         return;
     }
 
-    cout << "\n----------------------------------" << endl;
-    cout << "Post ID: " << post->postID << endl;
-    cout << "Author: " << post->author << endl;
-    cout << "Content: " << post->content << endl;
-    cout << "Likes: " << post->likes << endl;
-    cout << "----------------------------------" << endl;
+    cout << DIM << "\n  ┌────────────────────────────────────────────┐" << RESET << endl;
+    cout << "  " << DIM << "│ " << RESET << BOLD << CYAN << "Post #" << post->postID << RESET
+         << DIM << "  •  by " << RESET << BOLD << "@" << post->author << RESET << endl;
+    cout << "  " << DIM << "├────────────────────────────────────────────┤" << RESET << endl;
+    cout << "  " << DIM << "│ " << RESET << post->content << endl;
+    cout << "  " << DIM << "├────────────────────────────────────────────┤" << RESET << endl;
+    cout << "  " << DIM << "│ " << RESET << RED << "♥ " << post->likes << " Likes" << RESET << endl;
+    cout << DIM << "  └────────────────────────────────────────────┘" << RESET << endl;
 }
 
 // menu for managing the logged in user's own posts*
@@ -1518,16 +1556,18 @@ void my_posts_menu(social_network &app)
 
     do
     {
-        cout << "\n========== MY POSTS ==========" << endl;
-        cout << "1. Upload a Post" << endl;
-        cout << "2. View My Posts" << endl;
-        cout << "3. Edit a Post" << endl;
-        cout << "4. Delete a Post" << endl;
-        cout << "5. View Likes on a Post" << endl;
-        cout << "6. View Comments on a Post" << endl;
-        cout << "7. Comment on My Post" << endl;
-        cout << "8. Back to Main Menu" << endl;
-        cout << "Enter choice: ";
+        cout << BOLD << CYAN << "\n  ╔══════════════════════════════════════════╗" << RESET << endl;
+        cout << BOLD << CYAN << "  ║                 MY POSTS                 ║" << RESET << endl;
+        cout << BOLD << CYAN << "  ╚══════════════════════════════════════════╝" << RESET << endl;
+        cout << "   " << BOLD << "[1]" << RESET << " Upload a Post" << endl;
+        cout << "   " << BOLD << "[2]" << RESET << " View My Posts" << endl;
+        cout << "   " << BOLD << "[3]" << RESET << " Edit a Post" << endl;
+        cout << "   " << BOLD << "[4]" << RESET << " Delete a Post" << endl;
+        cout << "   " << BOLD << "[5]" << RESET << " View Likes on a Post" << endl;
+        cout << "   " << BOLD << "[6]" << RESET << " View Comments on a Post" << endl;
+        cout << "   " << BOLD << "[7]" << RESET << " Comment on My Post" << endl;
+        cout << "   " << DIM  << "[8] Back to Main Menu" << RESET << endl;
+        cout << CYAN << "\n  ▸ Enter choice: " << RESET;
 
         choice = read_choice();
 
@@ -1540,7 +1580,7 @@ void my_posts_menu(social_network &app)
             }
             else
             {
-                cout << "Post cannot be empty." << endl;
+                cout << RED << "  [!] Post cannot be empty." << RESET << endl;
             }
         }
         else if (choice == 2)
@@ -1561,14 +1601,14 @@ void my_posts_menu(social_network &app)
 
             if (!found)
             {
-                cout << "You have not uploaded any posts yet." << endl;
+                cout << YELLOW << "  [!] You have not uploaded any posts yet." << RESET << endl;
             }
         }
         // options 3 to 7 all need a post ID*
         else if (choice >= 3 && choice <= 7)
         {
             int id;
-            cout << "Enter Post ID: ";
+            cout << CYAN << "  ▸ Enter Post ID: " << RESET;
             id = read_choice();
 
             if (choice == 3)
@@ -1596,7 +1636,7 @@ void my_posts_menu(social_network &app)
         }
         else if (choice != 8)
         {
-            cout << "Invalid choice." << endl;
+            cout << RED << "  [!] Invalid choice." << RESET << endl;
         }
 
     } while (choice != 8);
@@ -1619,7 +1659,7 @@ void explore_feed_menu(social_network &app)
 
         if (current == NULL)
         {
-            cout << "\nThere are no posts from other users yet." << endl;
+            cout << YELLOW << "\n  [!] There are no posts from other users yet." << RESET << endl;
             return;
         }
 
@@ -1631,13 +1671,13 @@ void explore_feed_menu(social_network &app)
             {
                 show_post(current);
 
-                cout << "\n1. Like Post" << endl;
-                cout << "2. Comment on Post" << endl;
-                cout << "3. View Comments" << endl;
-                cout << "4. Send Friend Request to Author" << endl;
-                cout << "5. Next Post" << endl;
-                cout << "6. Back to Main Menu" << endl;
-                cout << "Enter choice: ";
+                cout << "   " << BOLD << "[1]" << RESET << " Like Post" << endl;
+                cout << "   " << BOLD << "[2]" << RESET << " Comment on Post" << endl;
+                cout << "   " << BOLD << "[3]" << RESET << " View Comments" << endl;
+                cout << "   " << BOLD << "[4]" << RESET << " Send Friend Request to Author" << endl;
+                cout << "   " << BOLD << "[5]" << RESET << " Next Post" << endl;
+                cout << "   " << DIM  << "[6] Back to Main Menu" << RESET << endl;
+                cout << CYAN << "\n  ▸ Enter choice: " << RESET;
 
                 choice = read_choice();
 
@@ -1668,7 +1708,7 @@ void explore_feed_menu(social_network &app)
                 }
                 else
                 {
-                    cout << "Invalid choice." << endl;
+                    cout << RED << "  [!] Invalid choice." << RESET << endl;
                 }
             }
             else
@@ -1684,10 +1724,10 @@ void explore_feed_menu(social_network &app)
 
         if (current == NULL)
         {
-            cout << "\nYou have reached the end of the feed." << endl;
-            cout << "1. Start Feed Again" << endl;
-            cout << "2. Back to Main Menu" << endl;
-            cout << "Enter choice: ";
+            cout << YELLOW << "\n  [!] You have reached the end of the feed." << RESET << endl;
+            cout << "   " << BOLD << "[1]" << RESET << " Start Feed Again" << endl;
+            cout << "   " << DIM  << "[2] Back to Main Menu" << RESET << endl;
+            cout << CYAN << "\n  ▸ Enter choice: " << RESET;
 
             choice = read_choice();
 
@@ -1697,7 +1737,7 @@ void explore_feed_menu(social_network &app)
             }
             else if (choice != 1)
             {
-                cout << "Invalid choice. Returning to main menu." << endl;
+                cout << RED << "  [!] Invalid choice. Returning to main menu." << RESET << endl;
                 return;
             }
         }
@@ -1709,17 +1749,17 @@ void friend_requests_menu(social_network &app)
 {
     app.view_friend_requests();
 
-    string sender = read_text("\nEnter the username to respond to (or press Enter to go back): ");
+    string sender = read_text("\nEnter username to respond to (or press Enter to go back): ");
 
     if (sender.empty())
     {
         return;
     }
 
-    cout << "1. Accept" << endl;
-    cout << "2. Reject" << endl;
-    cout << "3. Cancel" << endl;
-    cout << "Enter choice: ";
+    cout << "   " << GREEN << "[1]" << RESET << " Accept" << endl;
+    cout << "   " << RED   << "[2]" << RESET << " Reject" << endl;
+    cout << "   " << DIM   << "[3] Cancel" << RESET << endl;
+    cout << CYAN << "\n  ▸ Enter choice: " << RESET;
 
     int choice = read_choice();
 
@@ -1741,20 +1781,20 @@ void search_users_menu(social_network &app)
 
     if (found == NULL)
     {
-        cout << "User not found." << endl;
+        cout << RED << "  [!] User not found." << RESET << endl;
         return;
     }
 
     if (found->name == app.active_user->name)
     {
-        cout << "This is your own profile." << endl;
+        cout << YELLOW << "  [!] This is your own profile." << RESET << endl;
         return;
     }
 
-    cout << "\nUser found: " << found->name << endl;
-    cout << "1. Send Friend Request" << endl;
-    cout << "2. Back" << endl;
-    cout << "Enter choice: ";
+    cout << GREEN << "\n  [✓] User found: " << RESET << BOLD << "@" << found->name << RESET << endl;
+    cout << "   " << BOLD << "[1]" << RESET << " Send Friend Request" << endl;
+    cout << "   " << DIM  << "[2] Back" << RESET << endl;
+    cout << CYAN << "\n  ▸ Enter choice: " << RESET;
 
     int choice = read_choice();
 
@@ -1771,16 +1811,18 @@ void logged_in_menu(social_network &app)
 
     while (app.active_user != NULL)
     {
-        cout << "\n========== SOCIAL NETWORK ==========" << endl;
-        cout << "Welcome, " << app.active_user->name << "!" << endl;
-        cout << "1. Manage My Posts" << endl;
-        cout << "2. Explore Feed" << endl;
-        cout << "3. View Friend Requests" << endl;
-        cout << "4. View My Friends" << endl;
-        cout << "5. Search Users" << endl;
-        cout << "6. View Notifications" << endl;
-        cout << "7. Logout" << endl;
-        cout << "Enter choice: ";
+        cout << BOLD << BLUE << "\n  ╔══════════════════════════════════════════╗" << RESET << endl;
+        cout << BOLD << BLUE << "  ║              SOCIAL NETWORK              ║" << RESET << endl;
+        cout << BOLD << BLUE << "  ╚══════════════════════════════════════════╝" << RESET << endl;
+        cout << "   " << DIM << "Logged in as " << RESET << BOLD << GREEN << "@" << app.active_user->name << RESET << "\n" << endl;
+        cout << "   " << BOLD << "[1]" << RESET << " Manage My Posts" << endl;
+        cout << "   " << BOLD << "[2]" << RESET << " Explore Feed" << endl;
+        cout << "   " << BOLD << "[3]" << RESET << " View Friend Requests" << endl;
+        cout << "   " << BOLD << "[4]" << RESET << " View My Friends" << endl;
+        cout << "   " << BOLD << "[5]" << RESET << " Search Users" << endl;
+        cout << "   " << BOLD << "[6]" << RESET << " View Notifications" << endl;
+        cout << "   " << RED  << "[7] Logout" << RESET << endl;
+        cout << CYAN << "\n  ▸ Enter choice: " << RESET;
 
         choice = read_choice();
 
@@ -1816,7 +1858,7 @@ void logged_in_menu(social_network &app)
         }
         else
         {
-            cout << "Invalid choice. Try again." << endl;
+            cout << RED << "  [!] Invalid choice. Try again." << RESET << endl;
         }
     }
 }
@@ -1833,11 +1875,13 @@ int main()
 
     while (true)
     {
-        cout << "\n========== WELCOME TO SOCIAL NETWORK ==========" << endl;
-        cout << "1. Register" << endl;
-        cout << "2. Login" << endl;
-        cout << "3. Exit" << endl;
-        cout << "Enter choice: ";
+        cout << BOLD << CYAN << "\n  ╔══════════════════════════════════════════╗" << RESET << endl;
+        cout << BOLD << CYAN << "  ║         WELCOME TO SOCIAL NETWORK        ║" << RESET << endl;
+        cout << BOLD << CYAN << "  ╚══════════════════════════════════════════╝" << RESET << endl;
+        cout << "   " << BOLD << "[1]" << RESET << " Register" << endl;
+        cout << "   " << BOLD << "[2]" << RESET << " Login" << endl;
+        cout << "   " << RED  << "[3] Exit" << RESET << endl;
+        cout << CYAN << "\n  ▸ Enter choice: " << RESET;
 
         choice = read_choice();
 
@@ -1850,7 +1894,7 @@ int main()
 
             if (app.register_user(username, password, email))
             {
-                cout << "Registration successful!" << endl;
+                cout << GREEN << "  [✓] Registration successful!" << RESET << endl;
                 // save right after registering*
                 app.save_data();
             }
@@ -1870,12 +1914,12 @@ int main()
         {
             // save everything before exiting*
             app.save_data();
-            cout << "Thank you for using the Social Network System!" << endl;
+            cout << BOLD << CYAN << "\n  Thank you for using the Social Network System!\n" << RESET << endl;
             break;
         }
         else
         {
-            cout << "Invalid choice. Try again." << endl;
+            cout << RED << "  [!] Invalid choice. Try again." << RESET << endl;
         }
     }
 
